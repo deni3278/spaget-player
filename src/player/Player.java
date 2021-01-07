@@ -53,6 +53,8 @@ public class Player {
     void initialize() {
         updateMediaTable();
 
+        sliderVolume.setValue(50);
+
         /* Listeners */
 
         setControlListeners();

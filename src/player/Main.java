@@ -26,7 +26,7 @@ import java.util.ArrayList;
  * Main class of the {@code JavaFX} application.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.0.1
+ * @version 3.0.2
  * @since 04.01.2021
  */
 public class Main extends Application {
@@ -89,6 +89,8 @@ public class Main extends Application {
 
     /**
      * Retrieves all records in the media table of the database as an {@code ArrayList}.
+     * <p>
+     * If {@code fldArtist} in the database is empty, artist is displayed as an empty {@code String} instead of {@code null}.
      *
      * @return {@code ArrayList} of database media files.
      * @see Media
@@ -101,7 +103,11 @@ public class Main extends Application {
         String field;
 
         while (!((field = DB.getData()).equals(DB.NOMOREDATA))) {
-            databaseMedia.add(new Media(field, DB.getData(), DB.getData(), Integer.parseInt(DB.getData())));
+            String title = DB.getData();
+            String artist = ((artist = DB.getData()).equals("null") ? "" : artist);
+            int length = Integer.parseInt(DB.getData());
+
+            databaseMedia.add(new Media(field, title, artist, length));
         }
 
         return databaseMedia;
@@ -131,7 +137,11 @@ public class Main extends Application {
                     Tag tag = file.getTag();
                     AudioHeader header = file.getAudioHeader();
 
-                    localMedia.add(new Media(path, tag.getFirst(FieldKey.TITLE), tag.getFirst(FieldKey.ARTIST), header.getTrackLength()));
+                    String title = tag.getFirst(FieldKey.TITLE);
+                    String artist = tag.getFirst(FieldKey.ARTIST);
+                    int length = header.getTrackLength();
+
+                    localMedia.add(new Media(path, title, artist, length));
                 } else if (fileType.contains("video")) {
                     localMedia.add(new Media(path, media.getName(), "null", 0));
                 }
