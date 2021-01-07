@@ -40,14 +40,14 @@
     -fx-background-color: #3a3a3a !important;
 }
 
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:hover {
+.tab-pane > .tab-header-area > .headers-region > .tab:hover {
     -fx-background-color: #444444 !important;
 }
 
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected {
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
     -fx-background-color: #555555 !important;
 }
 
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+.tab-pane > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
     -fx-border-color: transparent;
 }

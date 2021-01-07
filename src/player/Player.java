@@ -18,7 +18,7 @@ import static javafx.scene.media.MediaPlayer.Status.*;
  * Controller class for {@code player.fxml}.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.0
+ * @version 3.1
  * @since 04.01.2021
  */
 public class Player {
@@ -44,15 +44,26 @@ public class Player {
     TableView<player.Media> viewTableMedia;
 
     @FXML
-    TableColumn<player.Media, String> columnTitle, columnArtist, columnLength;
+    TableColumn<player.Media, String> columnTitle, columnArtist, columnDuration;
+
+    @FXML
+    TabPane paneTab;
 
     @FXML
     void initialize() {
         updateMediaTable();
 
-        sliderVolume.setValue(50);
+        /* Listeners */
 
         setControlListeners();
+
+        paneTab.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.intValue() == 0) {
+                updateMediaTable();
+            } else {
+                // Todo: Update playlists
+            }
+        });
     }
 
     /**
@@ -110,11 +121,13 @@ public class Player {
      */
     @FXML
     void updateMediaTable() {
+        viewTableMedia.getItems().removeAll(viewTableMedia.getItems());
+
         ArrayList<player.Media> mediaList = Main.updateDatabase();
 
         columnTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         columnArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
-        columnLength.setCellValueFactory(new PropertyValueFactory<>("length"));
+        columnDuration.setCellValueFactory(new PropertyValueFactory<>("duration"));
 
         for (player.Media media : mediaList) {
             viewTableMedia.getItems().add(media);
@@ -145,12 +158,12 @@ public class Player {
         });
 
         mediaPlayer.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
-            labelCurrentTime.setText(Double.toString(newValue.toSeconds()));
+            labelCurrentTime.setText(player.Media.formatSeconds((int) Math.round(newValue.toSeconds())));
             sliderSeek.setValue(newValue.toSeconds());
         });
 
         mediaPlayer.setOnReady(() -> {
-            labelTotalDuration.setText(String.valueOf(mediaPlayer.getTotalDuration().toSeconds()));
+            labelTotalDuration.setText(player.Media.formatSeconds((int) Math.round(media.getDuration().toSeconds())));
             sliderSeek.setMax(media.getDuration().toSeconds());
 
             mediaPlayer.setVolume(sliderVolume.getValue() / 100.0);

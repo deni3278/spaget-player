@@ -4,11 +4,11 @@ package player;
  * Models a media file.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.0.1
+ * @version 3.1
  * @since 04.01.2021
  */
 public class Media {
-    private String path, title, artist;
+    private String path, title, artist, duration;
     private int length;
 
     /**
@@ -24,6 +24,8 @@ public class Media {
         this.title = title;
         this.artist = artist;
         this.length = length;
+
+        duration = formatSeconds(length);
     }
 
     public String getPath() {
@@ -38,8 +40,26 @@ public class Media {
         return artist;
     }
 
+    public String getDuration() {
+        return duration;
+    }
+
     public int getLength() {
         return length;
+    }
+
+    /**
+     * Converts seconds to {@code hours:minutes:seconds}.
+     *
+     * @param totalSeconds seconds to be converted
+     * @return formatted {@code String}
+     */
+    static String formatSeconds(int totalSeconds) {
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 
     /**

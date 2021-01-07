@@ -26,7 +26,7 @@ import java.util.ArrayList;
  * Main class of the {@code JavaFX} application.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.0
+ * @version 3.0.1
  * @since 04.01.2021
  */
 public class Main extends Application {
@@ -156,6 +156,7 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         disableLogger();
+
         launch(args);
     }
 }
