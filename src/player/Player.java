@@ -4,13 +4,18 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static javafx.scene.media.MediaPlayer.Status.*;
 
@@ -29,16 +34,25 @@ public class Player {
     MediaView mediaView;
 
     @FXML
+    Region regionAlbumBackground;
+
+    @FXML
     Button btnPlay, btnStepBack, btnStop, btnStepForward;
 
     @FXML
     FontAwesomeIconView iconBtnPlay;
 
     @FXML
+    ImageView imageAlbum;
+
+    @FXML
     Label labelCurrentTime, labelTotalDuration;
 
     @FXML
     Slider sliderVolume, sliderSeek;
+
+    @FXML
+    StackPane paneMediaView;
 
     @FXML
     TableView<player.Media> viewTableMedia;
@@ -97,6 +111,11 @@ public class Player {
 
         mediaPlayer = new MediaPlayer(media);
         mediaView.setMediaPlayer(mediaPlayer);
+
+        if (imageAlbum.getImage() != null) {
+            imageAlbum.setImage(null);
+            regionAlbumBackground.setBackground(Background.EMPTY);
+        }
 
         setMediaPlayerListeners();
     }
@@ -167,6 +186,18 @@ public class Player {
         mediaPlayer.setOnReady(() -> {
             labelTotalDuration.setText(player.Media.formatSeconds((int) Math.round(media.getDuration().toSeconds())));
             sliderSeek.setMax(media.getDuration().toSeconds());
+
+            Map<String, Object> metadata = media.getMetadata();
+
+            if (metadata.containsKey("image")) {
+                imageAlbum.setImage((Image) metadata.get("image"));
+
+                BackgroundImage image = new BackgroundImage(imageAlbum.getImage(), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,
+                        new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true));
+
+                regionAlbumBackground.setBackground(new Background(image));
+                regionAlbumBackground.setEffect(new GaussianBlur(50));
+            }
 
             mediaPlayer.setVolume(sliderVolume.getValue() / 100.0);
             mediaPlayer.play();

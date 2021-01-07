@@ -14,10 +14,12 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.media.MediaView?>
@@ -27,9 +29,11 @@
    <items>
       <BorderPane minWidth="350.0">
          <center>
-            <StackPane fx:id="mediaViewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" BorderPane.alignment="CENTER">
+            <StackPane fx:id="paneMediaView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" BorderPane.alignment="CENTER">
                <children>
-                  <MediaView fx:id="mediaView" fitHeight="${mediaViewPane.height}" fitWidth="${mediaViewPane.width}" StackPane.alignment="CENTER" />
+                  <Region fx:id="regionAlbumBackground" />
+                  <ImageView fx:id="imageAlbum" fitHeight="${paneMediaView.height}" fitWidth="${paneMediaView.width}" pickOnBounds="true" preserveRatio="true" StackPane.alignment="CENTER" />
+                  <MediaView fx:id="mediaView" fitHeight="${paneMediaView.height}" fitWidth="${paneMediaView.width}" StackPane.alignment="CENTER" />
                </children>
             </StackPane>
          </center>
