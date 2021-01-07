@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -26,7 +27,7 @@ import java.util.ArrayList;
  * Main class of the {@code JavaFX} application.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.0.2
+ * @version 3.1
  * @since 04.01.2021
  */
 public class Main extends Application {
@@ -143,7 +144,16 @@ public class Main extends Application {
 
                     localMedia.add(new Media(path, title, artist, length));
                 } else if (fileType.contains("video")) {
-                    localMedia.add(new Media(path, media.getName(), "null", 0));
+                    javafx.scene.media.Media video = new javafx.scene.media.Media(Paths.get(path).toUri().toString());
+                    MediaPlayer temp = new MediaPlayer(video);
+
+                    temp.setOnReady(() -> {
+                        DB.updateSQL("UPDATE tblMedia SET fldLength = " + (int) Math.round(temp.getTotalDuration().toSeconds()) + " WHERE fldPath = '" + path + "'");
+
+                        temp.dispose();
+                    });
+
+                    localMedia.add(new Media(path, media.getName(), "", (int) Math.round(video.getDuration().toSeconds())));
                 }
             }
         } catch (IOException | CannotReadException | ReadOnlyFileException | TagException | InvalidAudioFrameException e) {
