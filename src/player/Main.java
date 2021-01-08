@@ -60,8 +60,10 @@ public class Main extends Application {
      * @see Media
      */
     static ArrayList<Media> updateMedia() {
-        ArrayList<Media> databaseMedia = getDatabaseMedia();
-        ArrayList<Media> localMedia = getLocalMedia();
+        ArrayList<Media> databaseMedia = getDatabaseMedia();    // Stores all media files from the database
+        ArrayList<Media> localMedia = getLocalMedia();          // Stores all media files from the local folder
+
+        /* Delete all media records if the local folder is empty */
 
         if (localMedia.size() == 0) {
             for (Media media : databaseMedia) {
@@ -71,12 +73,16 @@ public class Main extends Application {
             return localMedia;
         }
 
+        /* New media files are added to the database */
+
         for (Media media : localMedia) {
             if (!databaseMedia.contains(media)) {
                 DB.insertSQL("INSERT INTO tblMedia (fldPath, fldTitle, fldArtist, fldLength) VALUES ('" + media.getPath() + "', '" + media.getTitle() + "', '" + media.getArtist() + "', '" + media.getLength() + "')");
                 databaseMedia.add(media);
             }
         }
+
+        /* Records of deleted media files are removed */
 
         for (Media media : databaseMedia) {
             if (!localMedia.contains(media)) {
@@ -95,7 +101,7 @@ public class Main extends Application {
      * @see Playlist
      */
     static ArrayList<Playlist> getPlaylists() {
-        ArrayList<Playlist> playlists = new ArrayList<>();
+        ArrayList<Playlist> playlists = new ArrayList<>(); // Stores all playlists and related media files from the database
 
         DB.selectSQL("SELECT fldName FROM tblPlaylist");
 
@@ -129,7 +135,7 @@ public class Main extends Application {
      * @see Media
      */
     private static ArrayList<Media> getDatabaseMedia() {
-        ArrayList<Media> databaseMedia = new ArrayList<>();
+        ArrayList<Media> databaseMedia = new ArrayList<>(); // Stores all media files from the database
 
         DB.selectSQL("SELECT fldPath, fldTitle, fldArtist, fldLength FROM tblMedia");
 
@@ -155,17 +161,20 @@ public class Main extends Application {
      * @see Media
      */
     private static ArrayList<Media> getLocalMedia() {
-        ArrayList<Media> localMedia = new ArrayList<>();
+        ArrayList<Media> localMedia = new ArrayList<>(); // Stores all media files from the local folder
 
         try {
-            File mediaFolder = new File(MEDIA_PATH);
-            File[] mediaList = mediaFolder.listFiles();
+            File mediaFolder = new File(MEDIA_PATH);    // Store local folder as a File object
+            File[] mediaList = mediaFolder.listFiles(); // Array of File objects representing the files in the local folder
 
             for (File media : mediaList) {
-                String path = media.getAbsolutePath();
-                String fileType = Files.probeContentType(media.toPath());
+                String path = media.getAbsolutePath();                      // Absolute path of current media file
+                String fileType = Files.probeContentType(media.toPath());   // Check whether the file is an audio, video, or other type of file
 
                 if (fileType.contains("audio")) {
+
+                    /* Get ID3 tags and track length using the library JAudioTagger */
+
                     AudioFile file = AudioFileIO.read(new File(path));
                     Tag tag = file.getTag();
                     AudioHeader header = file.getAudioHeader();
@@ -176,6 +185,9 @@ public class Main extends Application {
 
                     localMedia.add(new Media(path, title, artist, length));
                 } else if (fileType.contains("video")) {
+
+                    /* Get video length by using a temporary JavaFX MediaPlayer */
+
                     javafx.scene.media.Media video = new javafx.scene.media.Media(Paths.get(path).toUri().toString());
                     MediaPlayer temp = new MediaPlayer(video);
 

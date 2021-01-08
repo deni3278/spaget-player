@@ -75,6 +75,9 @@ public class Media {
         return path.equals(media.path);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return artist + title;

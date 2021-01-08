@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * Models a playlist of media files.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 1.0
+ * @version 1.1
  * @since 08.01.2021
  */
 public class Playlist {
@@ -21,6 +21,11 @@ public class Playlist {
         return name;
     }
 
+    /**
+     * Sets the new name of the {@code Playlist} and updates it in the database.
+     *
+     * @param name new name of the {@code Playlist}
+     */
     public void setName(String name) {
         DB.updateSQL("UPDATE tblPlaylist SET fldName = '" + name + "' WHERE fldName = '" + this.name + "'");
 

@@ -27,7 +27,7 @@ import static javafx.scene.media.MediaPlayer.Status.*;
  * Controller class for {@code player.fxml}.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.3
+ * @version 3.4
  * @since 04.01.2021
  */
 public class Player {
@@ -77,7 +77,7 @@ public class Player {
     void initialize() {
         updateMediaTable();
 
-        /* Default Values */
+        /* Default values */
 
         viewTableMedia.setPlaceholder(new Label("No media files in local folder"));
         sliderVolume.setValue(50.0);
@@ -110,17 +110,7 @@ public class Player {
 
         fieldSearch.setOnAction(e -> playMedia(viewTableMedia.getSelectionModel().getSelectedItem().getPath()));
 
-        /* Context Menu for Playlist List */
-
-        MenuItem newPlaylist = new MenuItem("New Playlist");
-        newPlaylist.setOnAction(e -> handleNewPlaylist());
-
-        ContextMenu menuPlaylist = new ContextMenu();
-        menuPlaylist.getItems().add(newPlaylist);
-
-        viewListPlaylists.setContextMenu(menuPlaylist);
-
-        /* Context Menu for Media List */
+        /* Context Menu for Library ListView */
 
         MenuItem refresh = new MenuItem("Refresh");
         refresh.setOnAction(e -> updateMediaTable());
@@ -129,6 +119,16 @@ public class Player {
         menuMedia.getItems().add(refresh);
 
         viewTableMedia.setContextMenu(menuMedia);
+
+        /* Context Menu for Playlist ListView */
+
+        MenuItem newPlaylist = new MenuItem("New Playlist");
+        newPlaylist.setOnAction(e -> handleNewPlaylist());
+
+        ContextMenu menuPlaylist = new ContextMenu();
+        menuPlaylist.getItems().add(newPlaylist);
+
+        viewListPlaylists.setContextMenu(menuPlaylist);
     }
 
     /**
@@ -141,6 +141,9 @@ public class Player {
 
     /**
      * Creates new instances of {@link #media} and {@link #mediaPlayer} using the argument.
+     * <p>
+     * Control buttons are disabled by default since no media file is played upon initialization.
+     * They are enabled the first time a media file is played.
      *
      * @param path absolute {@code URI} path of a media file as {@code String}
      */
@@ -160,6 +163,8 @@ public class Player {
 
         mediaPlayer = new MediaPlayer(media);
         mediaView.setMediaPlayer(mediaPlayer);
+
+        /* Remove MP3 album image from the player if it exists */
 
         if (imageAlbum.getImage() != null) {
             imageAlbum.setImage(null);
@@ -191,7 +196,9 @@ public class Player {
      */
     @FXML
     void handleNewPlaylist() {
-        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png"));
+        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png")); // Image object containing the icon for the dialog window
+
+        /* Create, initialize, and display an input dialog for the playlist name */
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("New Playlist");
@@ -205,6 +212,9 @@ public class Player {
 
         input.ifPresent(name -> {
             for (Playlist playlist : Main.getPlaylists()) {
+
+                /* Display an error alert if there's already a playlist with the same name as the inputted name */
+
                 if (playlist.getName().equals(name)) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setHeaderText(null);
@@ -234,7 +244,9 @@ public class Player {
     @FXML
     void handleListClick(MouseEvent event) {
         if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-            Playlist playlist = viewListPlaylists.getSelectionModel().getSelectedItem();
+            Playlist playlist = viewListPlaylists.getSelectionModel().getSelectedItem(); // Object of the selected playlist
+
+            /* If there already isn't a tab for it, a tab is created for the chosen playlist */
 
             if (playlist != null) {
                 for (Tab tab : paneTab.getTabs()) {
@@ -246,6 +258,8 @@ public class Player {
                         return;
                     }
                 }
+
+                /* Setup the table for the playlist's media contents */
 
                 TableColumn<player.Media, String> playlistColumnTitle = new TableColumn<>("Title");
                 TableColumn<player.Media, String> playlistColumnArtist = new TableColumn<>("Artist");
@@ -289,13 +303,15 @@ public class Player {
      */
     @FXML
     void updateMediaTable() {
-        viewTableMedia.getItems().removeAll(viewTableMedia.getItems());
+        viewTableMedia.getItems().removeAll(viewTableMedia.getItems()); // Remove any items in the table to avoid duplicate records
 
         columnTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         columnArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
         columnDuration.setCellValueFactory(new PropertyValueFactory<>("duration"));
 
         viewTableMedia.getItems().addAll(Main.updateMedia());
+
+        /* Add context menus to each record in the table for adding media files to playlists */
 
         viewTableMedia.setRowFactory(view -> {
             TableRow<player.Media> row = new TableRow<>();
@@ -305,6 +321,8 @@ public class Player {
                     ContextMenu menu = new ContextMenu();
                     Menu addToPlaylist = new Menu("Add To Playlist");
 
+                    /* Add a menu item for each playlist */
+
                     for (Playlist playlist : viewListPlaylists.getItems()) {
                         MenuItem item = new MenuItem(playlist.getName());
                         item.setOnAction(e -> {
@@ -312,6 +330,9 @@ public class Player {
 
                             for (player.Media media : mediaList) {
                                 if (media.getPath().equals(row.getItem().getPath())) {
+
+                                    /* Display an error alert if the media file already is in the playlist */
+
                                     Alert alert = new Alert(Alert.AlertType.ERROR);
                                     alert.setHeaderText(null);
                                     alert.setGraphic(null);
@@ -350,6 +371,8 @@ public class Player {
         viewListPlaylists.getItems().removeAll(viewListPlaylists.getItems());
         viewListPlaylists.getItems().addAll(Main.getPlaylists());
 
+        /* Add context menus to each record in the table for renaming and deleting playlists */
+
         viewListPlaylists.setCellFactory(view -> {
             ListCell<Playlist> cell = new ListCell<>();
 
@@ -357,7 +380,9 @@ public class Player {
                 if (!newValue) {
                     MenuItem rename = new MenuItem("Rename");
                     rename.setOnAction(e -> {
-                        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png"));
+                        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png")); // Image object containing the icon for the dialog window
+
+                        /* Create, initialize, and display an input dialog for the new playlist name */
 
                         TextInputDialog dialog = new TextInputDialog();
                         dialog.setTitle("Rename Playlist");
@@ -372,6 +397,9 @@ public class Player {
                         input.ifPresent(name -> {
                             for (Playlist playlist : Main.getPlaylists()) {
                                 if (playlist.getName().equals(name)) {
+
+                                    /* Display an error alert if a playlist with the inputted name already exists */
+
                                     Alert alert = new Alert(Alert.AlertType.ERROR);
                                     alert.setHeaderText(null);
                                     alert.setGraphic(null);
@@ -383,6 +411,8 @@ public class Player {
                                 }
                             }
 
+                            /* Rename the playlist in the table */
+
                             cell.itemProperty().get().setName(name);
                             cell.textProperty().bind(cell.itemProperty().asString());
                         });
@@ -390,6 +420,9 @@ public class Player {
 
                     MenuItem delete = new MenuItem("Delete");
                     delete.setOnAction(e -> {
+
+                        /* Display an empty String instead of "null" in the table */
+
                         cell.textProperty().unbind();
                         cell.setText("");
 
@@ -401,7 +434,7 @@ public class Player {
                     menu.getItems().addAll(rename, delete);
 
                     cell.setContextMenu(menu);
-                    cell.textProperty().bind(cell.itemProperty().asString());
+                    cell.textProperty().bind(cell.itemProperty().asString()); // Bind the name of the playlist in the table to the name field of the associated playlist object
                 }
             }));
 
@@ -415,10 +448,12 @@ public class Player {
      * The current media file that is playing is determined by which row is selected.
      * The next row is automatically selected once the current media is done playing.
      *
-     * @param tab {@code Tab}
+     * @param tab {@code Tab} of associated playlist
      */
     private void startPlaylist(Tab tab) {
-        TableView<player.Media> view = ((TableView) tab.getContent());
+        TableView<player.Media> view = ((TableView) tab.getContent()); // Object of the table of the given tab
+
+        /* Play each media file (in order) after the previous has finished playing */
 
         view.getSelectionModel().selectedItemProperty().addListener(((observable, oldValue, newValue) -> {
             playMedia(newValue.getPath());
@@ -446,7 +481,9 @@ public class Player {
      * set to the total duration of {@link #media}.
      */
     private void setMediaPlayerListeners() {
-        sliderVolume.valueProperty().addListener((observable, oldValue, newValue) -> mediaPlayer.setVolume(newValue.doubleValue() / 100.0));
+        sliderVolume.valueProperty().addListener((observable, oldValue, newValue) -> mediaPlayer.setVolume(newValue.doubleValue() / 100.0)); // Player volume changes when the volume slider changes
+
+        /* The play/pause button's icon changes depending on whether or not a media file is playing */
 
         mediaPlayer.statusProperty().addListener((observable, oldValue, newValue) -> {
             if (mediaPlayer.getStatus() == PLAYING) {
@@ -455,6 +492,8 @@ public class Player {
                 iconBtnPlay.setGlyphName("PLAY");
             }
         });
+
+        /* The current time label displays the current time in the media file, and the seek slider moves along with the current time */
 
         mediaPlayer.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
             labelCurrentTime.setText(player.Media.formatSeconds((int) Math.round(newValue.toSeconds())));
@@ -465,10 +504,12 @@ public class Player {
         });
 
         mediaPlayer.setOnReady(() -> {
-            labelTotalDuration.setText(player.Media.formatSeconds((int) Math.round(media.getDuration().toSeconds())));
-            sliderSeek.setMax(media.getDuration().toSeconds());
+            labelTotalDuration.setText(player.Media.formatSeconds((int) Math.round(media.getDuration().toSeconds()))); // The total duration label is set to match the total duration of the current media file
+            sliderSeek.setMax(media.getDuration().toSeconds());                                                        // The max value of the seek slider is set to match the total duration of the current media file
 
-            Map<String, Object> metadata = media.getMetadata();
+            Map<String, Object> metadata = media.getMetadata(); // Map object containing the current media file's metadata
+
+            /* Displays the album cover of the media file if one exists */
 
             if (metadata.containsKey("image")) {
                 imageAlbum.setImage((Image) metadata.get("image"));
@@ -480,8 +521,8 @@ public class Player {
                 regionAlbumBackground.setEffect(new GaussianBlur(50));
             }
 
-            mediaPlayer.setVolume(sliderVolume.getValue() / 100.0);
-            mediaPlayer.play();
+            mediaPlayer.setVolume(sliderVolume.getValue() / 100.0); // Sets the volume of the media player to be the same as the value of the volume slider
+            mediaPlayer.play();                                     // Plays the current media file
         });
     }
 
@@ -489,6 +530,9 @@ public class Player {
      * Implements an appropriate {@code Listener} to each of the control buttons and sliders.
      */
     private void setControlListeners() {
+
+        /* Plays or pauses the video */
+
         btnPlay.setOnAction(e -> {
             if (mediaPlayer.getStatus() == PLAYING) {
                 mediaPlayer.pause();
@@ -497,10 +541,10 @@ public class Player {
             }
         });
 
-        btnStepBack.setOnAction(e -> System.out.println("Step Backward"));
+        btnStepBack.setOnAction(e -> mediaPlayer.seek(javafx.util.Duration.seconds(0)));    // Seeks to the start of the media file
 
-        btnStop.setOnAction(e -> mediaPlayer.stop());
+        btnStop.setOnAction(e -> mediaPlayer.stop());                                       // Stops the media file
 
-        btnStepForward.setOnAction(e -> System.out.println("Step Forward"));
+        btnStepForward.setOnAction(e -> mediaPlayer.seek(media.getDuration()));             // Seeks to the end of the media file
     }
 }
