@@ -27,7 +27,7 @@ import java.util.ArrayList;
  * Main class of the {@code JavaFX} application.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.2
+ * @version 3.3
  * @since 04.01.2021
  */
 public class Main extends Application {
@@ -106,7 +106,7 @@ public class Main extends Application {
         }
 
         for (Playlist playlist : playlists) {
-            DB.selectSQL("SELECT fldPath, fldTitle, fldArtist, fldLength FROM tblMedia WHERE fldPath = (SELECT fldMediaPath FROM tblPlaylistMedia WHERE fldPlaylistName = '" + playlist.getName() + "')");
+            DB.selectSQL("SELECT fldPath, fldTitle, fldArtist, fldLength FROM tblMedia WHERE fldPath IN (SELECT fldMediaPath FROM tblPlaylistMedia WHERE fldPlaylistName = '" + playlist.getName() + "')");
 
             while (!((field = DB.getData()).equals(DB.NOMOREDATA))) {
                 String title = DB.getData();

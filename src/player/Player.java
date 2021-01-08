@@ -1,6 +1,7 @@
 package player;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -26,11 +27,10 @@ import static javafx.scene.media.MediaPlayer.Status.*;
  * Controller class for {@code player.fxml}.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.2
+ * @version 3.3
  * @since 04.01.2021
  */
 public class Player {
-
     Media media;
     MediaPlayer mediaPlayer;
 
@@ -203,6 +203,8 @@ public class Player {
 
     /**
      * Plays the selected {@link Playlist} if it's double clicked in the list.
+     * <p>
+     * A new {@code Tab} is created with a {@code ListView} of media files in the {@link Playlist}.
      *
      * @param event event which indicates that a mouse action occurred
      * @see #viewListPlaylists
@@ -213,9 +215,49 @@ public class Player {
             Playlist playlist = viewListPlaylists.getSelectionModel().getSelectedItem();
 
             if (playlist != null) {
-                // Todo: Implement playing a playlist.
+                for (Tab tab : paneTab.getTabs()) {
+                    if (tab.getText().equals(playlist.getName())) {
+                        paneTab.getSelectionModel().select(tab);
 
-                System.out.println("Playing playlist: " + playlist);
+                        startPlaylist(tab);
+
+                        return;
+                    }
+                }
+
+                TableColumn<player.Media, String> playlistColumnTitle = new TableColumn<>("Title");
+                TableColumn<player.Media, String> playlistColumnArtist = new TableColumn<>("Artist");
+                TableColumn<player.Media, String> playlistColumnDuration = new TableColumn<>("");
+
+                MaterialDesignIconView icon = new MaterialDesignIconView();
+                icon.setGlyphName("CLOCK");
+                icon.setSize("16");
+                playlistColumnDuration.setGraphic(icon);
+
+                playlistColumnTitle.setMinWidth(columnTitle.getMinWidth());
+                playlistColumnArtist.setMinWidth(columnArtist.getMinWidth());
+                playlistColumnDuration.setMinWidth(columnDuration.getMinWidth());
+
+                playlistColumnTitle.setMaxWidth(columnTitle.getMaxWidth());
+                playlistColumnArtist.setMaxWidth(columnArtist.getMaxWidth());
+                playlistColumnDuration.setMaxWidth(columnDuration.getMaxWidth());
+
+                playlistColumnTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
+                playlistColumnArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
+                playlistColumnDuration.setCellValueFactory(new PropertyValueFactory<>("duration"));
+
+                TableView<player.Media> viewTablePlaylist = new TableView<>();
+                viewTablePlaylist.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+                viewTablePlaylist.getColumns().addAll(playlistColumnTitle, playlistColumnArtist, playlistColumnDuration);
+                viewTablePlaylist.getItems().addAll(playlist.getMediaList());
+
+                Tab tabPlaylist = new Tab(playlist.getName());
+                tabPlaylist.setContent(viewTablePlaylist);
+
+                paneTab.getTabs().add(tabPlaylist);
+
+                paneTab.getSelectionModel().select(tabPlaylist);
+                startPlaylist(tabPlaylist);
             }
         }
     }
@@ -238,8 +280,6 @@ public class Player {
 
             row.emptyProperty().addListener((observable, oldValue, newValue) -> {
                 if (!newValue) {
-                    // Todo: Implement adding media to a playlist.
-
                     ContextMenu menu = new ContextMenu();
                     Menu addToPlaylist = new Menu("Add To Playlist");
 
@@ -250,7 +290,13 @@ public class Player {
 
                             for (player.Media media : mediaList) {
                                 if (media.getPath().equals(row.getItem().getPath())) {
-                                    // Todo: Add error.
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setHeaderText(null);
+                                    alert.setGraphic(null);
+                                    alert.setContentText("Media is already in the playlist!");
+                                    ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png")));
+                                    alert.showAndWait();
+
                                     return;
                                 }
                             }
@@ -323,7 +369,7 @@ public class Player {
                     MenuItem delete = new MenuItem("Delete");
                     delete.setOnAction(e -> {
                         cell.textProperty().unbind();
-                        cell.textProperty().setValue("");
+                        cell.setText("");
 
                         DB.deleteSQL("DELETE FROM tblPlaylist WHERE fldName = '" + cell.itemProperty().get().getName() + "'");
                         viewListPlaylists.getItems().remove(cell.itemProperty().get());
@@ -342,6 +388,32 @@ public class Player {
     }
 
     /**
+     * Plays the {@code tab}'s associated playlist.
+     * <p>
+     * The current media file that is playing is determined by which row is selected.
+     * The next row is automatically selected once the current media is done playing.
+     *
+     * @param tab {@code Tab}
+     */
+    private void startPlaylist(Tab tab) {
+        TableView<player.Media> view = ((TableView) tab.getContent());
+
+        view.getSelectionModel().selectedItemProperty().addListener(((observable, oldValue, newValue) -> {
+            playMedia(newValue.getPath());
+
+            mediaPlayer.setOnEndOfMedia(() -> {
+                int currentIndex = view.getSelectionModel().getSelectedIndex() + 1;
+
+                if (currentIndex < view.getItems().size()) {
+                    view.getSelectionModel().select(currentIndex);
+                }
+            });
+        }));
+
+        view.getSelectionModel().select(0);
+    }
+
+    /**
      * Implements various {@code Listener}s for the {@link #mediaPlayer} object.
      * <p>
      * {@link #sliderVolume} detects a change in value and applies the new value to {@link #mediaPlayer}'s volume.
@@ -352,9 +424,7 @@ public class Player {
      * set to the total duration of {@link #media}.
      */
     private void setMediaPlayerListeners() {
-        sliderVolume.valueProperty().addListener((observable, oldValue, newValue) -> {
-            mediaPlayer.setVolume(newValue.doubleValue() / 100.0);
-        });
+        sliderVolume.valueProperty().addListener((observable, oldValue, newValue) -> mediaPlayer.setVolume(newValue.doubleValue() / 100.0));
 
         mediaPlayer.statusProperty().addListener((observable, oldValue, newValue) -> {
             if (mediaPlayer.getStatus() == PLAYING) {
@@ -366,7 +436,10 @@ public class Player {
 
         mediaPlayer.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
             labelCurrentTime.setText(player.Media.formatSeconds((int) Math.round(newValue.toSeconds())));
-            sliderSeek.setValue(newValue.toSeconds());
+
+            if (!sliderSeek.isPressed()) {
+                sliderSeek.setValue(newValue.toSeconds());
+            }
         });
 
         mediaPlayer.setOnReady(() -> {
