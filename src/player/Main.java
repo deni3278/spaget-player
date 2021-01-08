@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Main class of the {@code JavaFX} application.
@@ -84,10 +85,15 @@ public class Main extends Application {
 
         /* Records of deleted media files are removed */
 
-        for (Media media : databaseMedia) {
+        Iterator<Media> iterator = databaseMedia.iterator(); // An Iterator is used instead of a for-loop to avoid a ConcurrentModificationException
+
+        while (iterator.hasNext()) {
+            Media media = iterator.next();
+
             if (!localMedia.contains(media)) {
                 DB.deleteSQL("DELETE FROM tblMedia WHERE fldPath = '" + media.getPath() + "'");
-                databaseMedia.remove(media);
+
+                iterator.remove();
             }
         }
 
