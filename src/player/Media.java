@@ -74,4 +74,9 @@ public class Media {
 
         return path.equals(media.path);
     }
+
+    @Override
+    public String toString() {
+        return artist + title;
+    }
 }

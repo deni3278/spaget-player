@@ -12,6 +12,7 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -48,13 +49,13 @@
                <children>
                   <HBox alignment="CENTER">
                      <children>
-                        <Label fx:id="labelCurrentTime" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="75.0" text="00:00:00" textFill="WHITE">
+                        <Label fx:id="labelCurrentTime" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="75.0" text="00:00:00" textFill="#e2d3a8">
                            <font>
                               <Font name="System Bold" size="11.0" />
                            </font>
                         </Label>
                         <Slider fx:id="sliderSeek" disable="true" maxHeight="-Infinity" minHeight="-Infinity" onMouseClicked="#handleSeek" onMousePressed="#handleSeek" HBox.hgrow="ALWAYS" />
-                        <Label fx:id="labelTotalDuration" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="75.0" text="00:00:00" textFill="WHITE">
+                        <Label fx:id="labelTotalDuration" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="75.0" text="00:00:00" textFill="#e2d3a8">
                            <font>
                               <Font name="System Bold" size="11.0" />
                            </font>
@@ -77,22 +78,22 @@
                            <children>
                               <Button fx:id="btnPlay" defaultButton="true" disable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: transparent;">
                                  <graphic>
-                                    <FontAwesomeIconView fx:id="iconBtnPlay" fill="WHITE" glyphName="PLAY" size="20" />
+                                    <FontAwesomeIconView fx:id="iconBtnPlay" fill="#e2d3a8" glyphName="PLAY" size="20" />
                                  </graphic>
                               </Button>
                               <Button fx:id="btnStepBack" disable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: transparent;" GridPane.columnIndex="1">
                                  <graphic>
-                                    <FontAwesomeIconView fill="WHITE" glyphName="STEP_BACKWARD" size="20" />
+                                    <FontAwesomeIconView fill="#e2d3a8" glyphName="STEP_BACKWARD" size="20" />
                                  </graphic>
                               </Button>
                               <Button fx:id="btnStop" cancelButton="true" disable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: transparent;" GridPane.columnIndex="2">
                                  <graphic>
-                                    <FontAwesomeIconView fill="WHITE" glyphName="STOP" size="20" />
+                                    <FontAwesomeIconView fill="#e2d3a8" glyphName="STOP" size="20" />
                                  </graphic>
                               </Button>
                               <Button fx:id="btnStepForward" disable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: transparent;" GridPane.columnIndex="3">
                                  <graphic>
-                                    <FontAwesomeIconView fill="WHITE" glyphName="STEP_FORWARD" size="20" />
+                                    <FontAwesomeIconView fill="#e2d3a8" glyphName="STEP_FORWARD" size="20" />
                                  </graphic>
                               </Button>
                               <Slider fx:id="sliderVolume" disable="true" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="4">
@@ -112,28 +113,38 @@
          <tabs>
             <Tab closable="false" text="Library">
                <content>
-                  <TableView fx:id="viewTableMedia" onMouseClicked="#handleTableClick">
-                     <columns>
-                        <TableColumn fx:id="columnTitle" editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="Title" />
-                        <TableColumn fx:id="columnArtist" editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="Artist" />
-                        <TableColumn fx:id="columnDuration" editable="false" maxWidth="1.7976931348623157E308" minWidth="64.0" prefWidth="-1.0">
-                           <graphic>
-                              <MaterialDesignIconView glyphName="CLOCK" size="16" text="" />
-                           </graphic></TableColumn>
-                     </columns>
-                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                     </columnResizePolicy>
-                  </TableView>
+                  <VBox>
+                     <children>
+                        <TableView fx:id="viewTableMedia" onMouseClicked="#handleTableClick" VBox.vgrow="ALWAYS">
+                           <columns>
+                              <TableColumn fx:id="columnTitle" editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="Title" />
+                              <TableColumn fx:id="columnArtist" editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="Artist" />
+                              <TableColumn fx:id="columnDuration" editable="false" maxWidth="1.7976931348623157E308" minWidth="64.0" prefWidth="-1.0">
+                                 <graphic>
+                                    <MaterialDesignIconView glyphName="CLOCK" size="16" text="" />
+                                 </graphic>
+                              </TableColumn>
+                           </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                        </TableView>
+                        <TextField fx:id="fieldSearch" promptText="Search">
+                           <font>
+                              <Font size="16.0" />
+                           </font>
+                        </TextField>
+                     </children>
+                  </VBox>
                </content></Tab>
             <Tab closable="false" text="Playlists">
                <content>
                   <VBox>
                      <children>
                         <ListView fx:id="viewListPlaylists" onMouseClicked="#handleListClick" VBox.vgrow="ALWAYS" />
-                        <Button fx:id="btnPlaylist" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" mnemonicParsing="false" onAction="#handleNewPlaylist" prefHeight="100.0" style="-fx-background-color: #444444;" text="New Playlist" textFill="WHITE">
+                        <Button fx:id="btnPlaylist" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" mnemonicParsing="false" onAction="#handleNewPlaylist" prefHeight="100.0" style="-fx-background-color: #444444;" text="New Playlist" textFill="#e2d3a8">
                            <graphic>
-                              <FontAwesomeIconView fill="WHITE" glyphName="PLUS" text="" />
+                              <FontAwesomeIconView fill="#e2d3a8" glyphName="PLUS" text="" />
                            </graphic>
                            <font>
                               <Font name="System Bold" size="14.0" />

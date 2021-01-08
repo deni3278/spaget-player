@@ -18,6 +18,16 @@
     -fx-background-radius: 0;
 }
 
+.slider .track {
+    -fx-background-color: #e2d3a8;
+}
+
+.slider .thumb {
+    -fx-background-color: transparent;
+    -fx-background-image: url("meatball.png");
+    -fx-background-size: cover;
+}
+
 .split-pane {
     -fx-background-color: #000000;
 }
@@ -32,7 +42,7 @@
 }
 
 .tab-label {
-    -fx-text-fill: #ffffff;
+    -fx-text-fill: #e2d3a8;
     -fx-font-weight: bold;
 }
 

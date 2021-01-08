@@ -71,10 +71,16 @@ public class Player {
     TabPane paneTab;
 
     @FXML
+    TextField fieldSearch;
+
+    @FXML
     void initialize() {
         updateMediaTable();
 
-        sliderVolume.setValue(50.0); // Default volume
+        /* Default Values */
+
+        viewTableMedia.setPlaceholder(new Label("No media files in local folder"));
+        sliderVolume.setValue(50.0);
 
         /* Listeners */
 
@@ -87,6 +93,22 @@ public class Player {
                 updatePlaylistList();
             }
         });
+
+        fieldSearch.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.isEmpty()) {
+                viewTableMedia.getItems().stream()
+                        .filter(media -> media.toString().toLowerCase().contains(newValue.toLowerCase()))
+                        .findAny()
+                        .ifPresent(media -> {
+                            viewTableMedia.getSelectionModel().select(media);
+                            viewTableMedia.scrollTo(media);
+                        });
+            } else {
+                viewTableMedia.getSelectionModel().select(null);
+            }
+        });
+
+        fieldSearch.setOnAction(e -> playMedia(viewTableMedia.getSelectionModel().getSelectedItem().getPath()));
 
         /* Context Menu for Playlist List */
 
