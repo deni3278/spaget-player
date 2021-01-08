@@ -7,15 +7,18 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.stage.Stage;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 
 import static javafx.scene.media.MediaPlayer.Status.*;
 
@@ -23,10 +26,11 @@ import static javafx.scene.media.MediaPlayer.Status.*;
  * Controller class for {@code player.fxml}.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.1
+ * @version 3.2
  * @since 04.01.2021
  */
 public class Player {
+
     Media media;
     MediaPlayer mediaPlayer;
 
@@ -49,6 +53,9 @@ public class Player {
     Label labelCurrentTime, labelTotalDuration;
 
     @FXML
+    ListView<Playlist> viewListPlaylists;
+
+    @FXML
     Slider sliderVolume, sliderSeek;
 
     @FXML
@@ -67,7 +74,7 @@ public class Player {
     void initialize() {
         updateMediaTable();
 
-        sliderVolume.setValue(50);
+        sliderVolume.setValue(50.0); // Default volume
 
         /* Listeners */
 
@@ -77,9 +84,29 @@ public class Player {
             if (newValue.intValue() == 0) {
                 updateMediaTable();
             } else {
-                // Todo: Update playlists
+                updatePlaylistList();
             }
         });
+
+        /* Context Menu for Playlist List */
+
+        MenuItem newPlaylist = new MenuItem("New Playlist");
+        newPlaylist.setOnAction(e -> handleNewPlaylist());
+
+        ContextMenu menuPlaylist = new ContextMenu();
+        menuPlaylist.getItems().add(newPlaylist);
+
+        viewListPlaylists.setContextMenu(menuPlaylist);
+
+        /* Context Menu for Media List */
+
+        MenuItem refresh = new MenuItem("Refresh");
+        refresh.setOnAction(e -> updateMediaTable());
+
+        ContextMenu menuMedia = new ContextMenu();
+        menuMedia.getItems().add(refresh);
+
+        viewTableMedia.setContextMenu(menuMedia);
     }
 
     /**
@@ -121,14 +148,14 @@ public class Player {
     }
 
     /**
-     * Plays the selected media file if it's double clicked in the table.
+     * Plays the selected {@link player.Media} if it's double clicked in the table.
      *
      * @param event event which indicates that a mouse action occurred
      * @see #viewTableMedia
      */
     @FXML
     void handleTableClick(MouseEvent event) {
-        if (event.getClickCount() == 2) {
+        if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
             player.Media media = viewTableMedia.getSelectionModel().getSelectedItem();
 
             if (media != null) {
@@ -138,21 +165,180 @@ public class Player {
     }
 
     /**
-     * Retrieves an up-to-date {@code ArrayList} of local media files. The files are added as columns in the library table.
+     * Creates a new empty {@link Playlist} and adds it to the database.
+     */
+    @FXML
+    void handleNewPlaylist() {
+        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png"));
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("New Playlist");
+        dialog.setHeaderText(null);
+        dialog.setGraphic(null);
+        dialog.setContentText("Name");
+
+        ((Stage) dialog.getDialogPane().getScene().getWindow()).getIcons().add(icon);
+
+        Optional<String> input = dialog.showAndWait();
+
+        input.ifPresent(name -> {
+            for (Playlist playlist : Main.getPlaylists()) {
+                if (playlist.getName().equals(name)) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setHeaderText(null);
+                    alert.setGraphic(null);
+                    alert.setContentText("Playlist already exists!");
+                    ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(icon);
+                    alert.showAndWait();
+
+                    return;
+                }
+            }
+
+            DB.insertSQL("INSERT INTO tblPlaylist (fldName) VALUES ('" + name + "')");
+
+            updatePlaylistList();
+        });
+    }
+
+    /**
+     * Plays the selected {@link Playlist} if it's double clicked in the list.
+     *
+     * @param event event which indicates that a mouse action occurred
+     * @see #viewListPlaylists
+     */
+    @FXML
+    void handleListClick(MouseEvent event) {
+        if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+            Playlist playlist = viewListPlaylists.getSelectionModel().getSelectedItem();
+
+            if (playlist != null) {
+                // Todo: Implement playing a playlist.
+
+                System.out.println("Playing playlist: " + playlist);
+            }
+        }
+    }
+
+    /**
+     * Retrieves an up-to-date {@code ArrayList} of local media files. The files are added as rows in the library table.
      */
     @FXML
     void updateMediaTable() {
         viewTableMedia.getItems().removeAll(viewTableMedia.getItems());
 
-        ArrayList<player.Media> mediaList = Main.updateDatabase();
-
         columnTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         columnArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
         columnDuration.setCellValueFactory(new PropertyValueFactory<>("duration"));
 
-        for (player.Media media : mediaList) {
-            viewTableMedia.getItems().add(media);
-        }
+        viewTableMedia.getItems().addAll(Main.updateMedia());
+
+        viewTableMedia.setRowFactory(view -> {
+            TableRow<player.Media> row = new TableRow<>();
+
+            row.emptyProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue) {
+                    // Todo: Implement adding media to a playlist.
+
+                    ContextMenu menu = new ContextMenu();
+                    Menu addToPlaylist = new Menu("Add To Playlist");
+
+                    for (Playlist playlist : viewListPlaylists.getItems()) {
+                        MenuItem item = new MenuItem(playlist.getName());
+                        item.setOnAction(e -> {
+                            ArrayList<player.Media> mediaList = playlist.getMediaList();
+
+                            for (player.Media media : mediaList) {
+                                if (media.getPath().equals(row.getItem().getPath())) {
+                                    // Todo: Add error.
+                                    return;
+                                }
+                            }
+
+                            mediaList.add(row.getItem());
+
+                            DB.insertSQL("INSERT INTO tblPlaylistMedia (fldPlaylistName, fldMediaPath) VALUES ('" + playlist.getName() + "', '" + row.getItem().getPath() + "')");
+                        });
+
+                        addToPlaylist.getItems().add(item);
+                    }
+
+                    menu.getItems().add(addToPlaylist);
+                    row.setContextMenu(menu);
+                }
+            });
+
+            return row;
+        });
+    }
+
+    /**
+     * Retrieves an up-to-date {@code ArrayList} of playlists and {@link Playlist}s added as rows in the playlist list.
+     * <p>
+     * {@code Context Menu}s are added to each row in the list with items: rename, delete, and new playlist.
+     */
+    @FXML
+    void updatePlaylistList() {
+        viewListPlaylists.getItems().removeAll(viewListPlaylists.getItems());
+        viewListPlaylists.getItems().addAll(Main.getPlaylists());
+
+        viewListPlaylists.setCellFactory(view -> {
+            ListCell<Playlist> cell = new ListCell<>();
+
+            cell.emptyProperty().addListener(((observable, oldValue, newValue) -> {
+                if (!newValue) {
+                    MenuItem rename = new MenuItem("Rename");
+                    rename.setOnAction(e -> {
+                        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png"));
+
+                        TextInputDialog dialog = new TextInputDialog();
+                        dialog.setTitle("Rename Playlist");
+                        dialog.setHeaderText(null);
+                        dialog.setGraphic(null);
+                        dialog.setContentText("Rename");
+
+                        ((Stage) dialog.getDialogPane().getScene().getWindow()).getIcons().add(icon);
+
+                        Optional<String> input = dialog.showAndWait();
+
+                        input.ifPresent(name -> {
+                            for (Playlist playlist : Main.getPlaylists()) {
+                                if (playlist.getName().equals(name)) {
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setHeaderText(null);
+                                    alert.setGraphic(null);
+                                    alert.setContentText("Playlist already exists with that name!");
+                                    ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(icon);
+                                    alert.showAndWait();
+
+                                    return;
+                                }
+                            }
+
+                            cell.itemProperty().get().setName(name);
+                            cell.textProperty().bind(cell.itemProperty().asString());
+                        });
+                    });
+
+                    MenuItem delete = new MenuItem("Delete");
+                    delete.setOnAction(e -> {
+                        cell.textProperty().unbind();
+                        cell.textProperty().setValue("");
+
+                        DB.deleteSQL("DELETE FROM tblPlaylist WHERE fldName = '" + cell.itemProperty().get().getName() + "'");
+                        viewListPlaylists.getItems().remove(cell.itemProperty().get());
+                    });
+
+                    ContextMenu menu = new ContextMenu();
+                    menu.getItems().addAll(rename, delete);
+
+                    cell.setContextMenu(menu);
+                    cell.textProperty().bind(cell.itemProperty().asString());
+                }
+            }));
+
+            return cell;
+        });
     }
 
     /**

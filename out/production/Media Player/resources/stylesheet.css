@@ -1,3 +1,11 @@
+#btnPlaylist:hover {
+    -fx-background-color: #555555 !important;
+}
+
+#btnPlaylist:pressed {
+    -fx-background-color: #666666 !important;
+}
+
 #paneControlsGrid .button:hover {
     -fx-background-color: #333333 !important;
 }

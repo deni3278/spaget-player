@@ -27,7 +27,7 @@ import java.util.ArrayList;
  * Main class of the {@code JavaFX} application.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.1
+ * @version 3.2
  * @since 04.01.2021
  */
 public class Main extends Application {
@@ -46,7 +46,7 @@ public class Main extends Application {
         stage.setMinWidth(608.5 + (stage.getWidth() - root.prefWidth(0)));
         stage.setMinHeight(608.5 + (stage.getHeight() - root.prefHeight(0)));
 
-        updateDatabase();
+        updateMedia();
     }
 
     /**
@@ -59,7 +59,7 @@ public class Main extends Application {
      * @return Up-to-date {@code ArrayList} of local media files.
      * @see Media
      */
-    static ArrayList<Media> updateDatabase() {
+    static ArrayList<Media> updateMedia() {
         ArrayList<Media> databaseMedia = getDatabaseMedia();
         ArrayList<Media> localMedia = getLocalMedia();
 
@@ -86,6 +86,38 @@ public class Main extends Application {
         }
 
         return databaseMedia;
+    }
+
+    /**
+     * Gets playlists from the database and returns it as an {@code ArrayList}.
+     *
+     * @return Up-to-date {@code ArrayList} of playlists.
+     * @see Playlist
+     */
+    static ArrayList<Playlist> getPlaylists() {
+        ArrayList<Playlist> playlists = new ArrayList<>();
+
+        DB.selectSQL("SELECT fldName FROM tblPlaylist");
+
+        String field;
+
+        while (!((field = DB.getData()).equals(DB.NOMOREDATA))) {
+            playlists.add(new Playlist(field));
+        }
+
+        for (Playlist playlist : playlists) {
+            DB.selectSQL("SELECT fldPath, fldTitle, fldArtist, fldLength FROM tblMedia WHERE fldPath = (SELECT fldMediaPath FROM tblPlaylistMedia WHERE fldPlaylistName = '" + playlist.getName() + "')");
+
+            while (!((field = DB.getData()).equals(DB.NOMOREDATA))) {
+                String title = DB.getData();
+                String artist = ((artist = DB.getData()).equals("null") ? "" : artist);
+                int length = Integer.parseInt(DB.getData());
+
+                playlist.getMediaList().add(new Media(field, title, artist, length));
+            }
+        }
+
+        return playlists;
     }
 
     /**
