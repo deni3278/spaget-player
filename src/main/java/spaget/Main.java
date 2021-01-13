@@ -1,4 +1,4 @@
-package player;
+package spaget;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -36,12 +36,11 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("player.fxml"));
-        Parent root = loader.load();
+        Parent root = FXMLLoader.load(getClass().getResource("/player.fxml"));
 
         stage.setScene(new Scene(root));
         stage.setTitle("Spaget Player");
-        stage.getIcons().add(new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png")));
+        stage.getIcons().add(new Image(getClass().getResource("/images/spaghetti.png").toExternalForm()));
         stage.show();
 
         stage.setMinWidth(608.5 + (stage.getWidth() - root.prefWidth(0)));
@@ -220,7 +219,7 @@ public class Main extends Application {
         java.util.logging.LogManager manager = java.util.logging.LogManager.getLogManager();
 
         try {
-            manager.readConfiguration(Main.class.getResourceAsStream("../resources/logger.properties"));
+            manager.readConfiguration(Main.class.getResourceAsStream("/properties/logger.properties"));
         } catch (IOException ignored) {}
     }
 

@@ -1,4 +1,4 @@
-package player;
+package spaget;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
@@ -30,7 +30,7 @@ import static javafx.scene.media.MediaPlayer.Status.*;
  * @version 3.4
  * @since 04.01.2021
  */
-public class Player {
+public class PlayerController {
     Media media;
     MediaPlayer mediaPlayer;
 
@@ -62,10 +62,10 @@ public class Player {
     StackPane paneMediaView;
 
     @FXML
-    TableView<player.Media> viewTableMedia;
+    TableView<spaget.Media> viewTableMedia;
 
     @FXML
-    TableColumn<player.Media, String> columnTitle, columnArtist, columnDuration;
+    TableColumn<spaget.Media, String> columnTitle, columnArtist, columnDuration;
 
     @FXML
     TabPane paneTab;
@@ -175,7 +175,7 @@ public class Player {
     }
 
     /**
-     * Plays the selected {@link player.Media} if it's double clicked in the table.
+     * Plays the selected {@link spaget.Media} if it's double clicked in the table.
      *
      * @param event event which indicates that a mouse action occurred
      * @see #viewTableMedia
@@ -183,7 +183,7 @@ public class Player {
     @FXML
     void handleTableClick(MouseEvent event) {
         if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-            player.Media media = viewTableMedia.getSelectionModel().getSelectedItem();
+            spaget.Media media = viewTableMedia.getSelectionModel().getSelectedItem();
 
             if (media != null) {
                 playMedia(media.getPath());
@@ -196,7 +196,7 @@ public class Player {
      */
     @FXML
     void handleNewPlaylist() {
-        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png")); // Image object containing the icon for the dialog window
+        Image icon = new Image(this.getClass().getResourceAsStream("/images/spaghetti.png")); // Image object containing the icon for the dialog window
 
         /* Create, initialize, and display an input dialog for the playlist name */
 
@@ -261,9 +261,9 @@ public class Player {
 
                 /* Setup the table for the playlist's media contents */
 
-                TableColumn<player.Media, String> playlistColumnTitle = new TableColumn<>("Title");
-                TableColumn<player.Media, String> playlistColumnArtist = new TableColumn<>("Artist");
-                TableColumn<player.Media, String> playlistColumnDuration = new TableColumn<>("");
+                TableColumn<spaget.Media, String> playlistColumnTitle = new TableColumn<>("Title");
+                TableColumn<spaget.Media, String> playlistColumnArtist = new TableColumn<>("Artist");
+                TableColumn<spaget.Media, String> playlistColumnDuration = new TableColumn<>("");
 
                 MaterialDesignIconView icon = new MaterialDesignIconView();
                 icon.setGlyphName("CLOCK");
@@ -282,7 +282,7 @@ public class Player {
                 playlistColumnArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
                 playlistColumnDuration.setCellValueFactory(new PropertyValueFactory<>("duration"));
 
-                TableView<player.Media> viewTablePlaylist = new TableView<>();
+                TableView<spaget.Media> viewTablePlaylist = new TableView<>();
                 viewTablePlaylist.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
                 viewTablePlaylist.getColumns().addAll(playlistColumnTitle, playlistColumnArtist, playlistColumnDuration);
                 viewTablePlaylist.getItems().addAll(playlist.getMediaList());
@@ -314,7 +314,7 @@ public class Player {
         /* Add context menus to each record in the table for adding media files to playlists */
 
         viewTableMedia.setRowFactory(view -> {
-            TableRow<player.Media> row = new TableRow<>();
+            TableRow<spaget.Media> row = new TableRow<>();
 
             row.emptyProperty().addListener((observable, oldValue, newValue) -> {
                 if (!newValue) {
@@ -326,9 +326,9 @@ public class Player {
                     for (Playlist playlist : viewListPlaylists.getItems()) {
                         MenuItem item = new MenuItem(playlist.getName());
                         item.setOnAction(e -> {
-                            ArrayList<player.Media> mediaList = playlist.getMediaList();
+                            ArrayList<spaget.Media> mediaList = playlist.getMediaList();
 
-                            for (player.Media media : mediaList) {
+                            for (spaget.Media media : mediaList) {
                                 if (media.getPath().equals(row.getItem().getPath())) {
 
                                     /* Display an error alert if the media file already is in the playlist */
@@ -337,7 +337,7 @@ public class Player {
                                     alert.setHeaderText(null);
                                     alert.setGraphic(null);
                                     alert.setContentText("Media is already in the playlist!");
-                                    ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png")));
+                                    ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image(this.getClass().getResourceAsStream("/images/spaghetti.png")));
                                     alert.showAndWait();
 
                                     return;
@@ -380,7 +380,7 @@ public class Player {
                 if (!newValue) {
                     MenuItem rename = new MenuItem("Rename");
                     rename.setOnAction(e -> {
-                        Image icon = new Image(this.getClass().getResourceAsStream("../resources/spaghetti.png")); // Image object containing the icon for the dialog window
+                        Image icon = new Image(this.getClass().getResourceAsStream("/images/spaghetti.png")); // Image object containing the icon for the dialog window
 
                         /* Create, initialize, and display an input dialog for the new playlist name */
 
@@ -451,7 +451,7 @@ public class Player {
      * @param tab {@code Tab} of associated playlist
      */
     private void startPlaylist(Tab tab) {
-        TableView<player.Media> view = ((TableView) tab.getContent()); // Object of the table of the given tab
+        TableView<spaget.Media> view = ((TableView) tab.getContent()); // Object of the table of the given tab
 
         /* Play each media file (in order) after the previous has finished playing */
 
@@ -496,7 +496,7 @@ public class Player {
         /* The current time label displays the current time in the media file, and the seek slider moves along with the current time */
 
         mediaPlayer.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
-            labelCurrentTime.setText(player.Media.formatSeconds((int) Math.round(newValue.toSeconds())));
+            labelCurrentTime.setText(spaget.Media.formatSeconds((int) Math.round(newValue.toSeconds())));
 
             if (!sliderSeek.isPressed()) {
                 sliderSeek.setValue(newValue.toSeconds());
@@ -504,7 +504,7 @@ public class Player {
         });
 
         mediaPlayer.setOnReady(() -> {
-            labelTotalDuration.setText(player.Media.formatSeconds((int) Math.round(media.getDuration().toSeconds()))); // The total duration label is set to match the total duration of the current media file
+            labelTotalDuration.setText(spaget.Media.formatSeconds((int) Math.round(media.getDuration().toSeconds()))); // The total duration label is set to match the total duration of the current media file
             sliderSeek.setMax(media.getDuration().toSeconds());                                                        // The max value of the seek slider is set to match the total duration of the current media file
 
             Map<String, Object> metadata = media.getMetadata(); // Map object containing the current media file's metadata

@@ -25,7 +25,7 @@
 <?import javafx.scene.media.MediaView?>
 <?import javafx.scene.text.Font?>
 
-<SplitPane dividerPositions="0.75" minHeight="606.0" minWidth="606.0" prefHeight="768.0" prefWidth="1024.0" stylesheets="@../resources/stylesheet.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="player.Player">
+<SplitPane dividerPositions="0.75" minHeight="606.0" minWidth="606.0" prefHeight="768.0" prefWidth="1024.0" stylesheets="@stylesheet.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="spaget.PlayerController">
    <items>
       <BorderPane minWidth="350.0">
          <center>

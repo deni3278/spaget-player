@@ -1,7 +1,5 @@
-package player;
+package spaget;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.*;
 import java.util.Properties;
@@ -37,10 +35,10 @@ public class DB {
      */
     static {
         Properties props = new Properties();
-        String fileName = "../resources/db.properties";
+        String fileName = "/properties/db.properties";
         InputStream input;
         try{
-            input = new FileInputStream(new File(DB.class.getResource(fileName).toURI()));
+            input = DB.class.getResourceAsStream(fileName);
             props.load(input);
             port = props.getProperty("port","1433");
             databaseName = props.getProperty("databaseName");

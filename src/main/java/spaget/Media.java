@@ -1,4 +1,4 @@
-package player;
+package spaget;
 
 /**
  * Models a media file.

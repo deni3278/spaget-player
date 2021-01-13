@@ -1,4 +1,4 @@
-package player;
+package spaget;
 
 import java.util.ArrayList;
 
