@@ -40,7 +40,7 @@ public class DB {
         String fileName = "db.properties";
         InputStream input;
         try {
-            input = new FileInputStream(Paths.get("properties/" + fileName).toFile());
+            input = new FileInputStream(Paths.get(fileName).toFile());
             props.load(input);
             port = props.getProperty("port", "1433");
             databaseName = props.getProperty("databaseName");
