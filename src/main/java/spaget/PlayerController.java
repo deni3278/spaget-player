@@ -1,7 +1,5 @@
 package spaget;
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -15,19 +13,20 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
-import static javafx.scene.media.MediaPlayer.Status.*;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 
 /**
  * Controller class for {@code player.fxml}.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.4
+ * @version 4.0.0
  * @since 04.01.2021
  */
 public class PlayerController {
@@ -44,7 +43,7 @@ public class PlayerController {
     Button btnPlay, btnStepBack, btnStop, btnStepForward;
 
     @FXML
-    FontAwesomeIconView iconBtnPlay;
+    FontIcon iconBtnPlay;
 
     @FXML
     ImageView imageAlbum;
@@ -142,8 +141,7 @@ public class PlayerController {
     /**
      * Creates new instances of {@link #media} and {@link #mediaPlayer} using the argument.
      * <p>
-     * Control buttons are disabled by default since no media file is played upon initialization.
-     * They are enabled the first time a media file is played.
+     * Control buttons are disabled by default since no media file is played upon initialization. They are enabled the first time a media file is played.
      *
      * @param path absolute {@code URI} path of a media file as {@code String}
      */
@@ -211,7 +209,7 @@ public class PlayerController {
         Optional<String> input = dialog.showAndWait();
 
         input.ifPresent(name -> {
-            for (Playlist playlist : Main.getPlaylists()) {
+            for (Playlist playlist : App.getPlaylists()) {
 
                 /* Display an error alert if there's already a playlist with the same name as the inputted name */
 
@@ -265,9 +263,8 @@ public class PlayerController {
                 TableColumn<spaget.Media, String> playlistColumnArtist = new TableColumn<>("Artist");
                 TableColumn<spaget.Media, String> playlistColumnDuration = new TableColumn<>("");
 
-                MaterialDesignIconView icon = new MaterialDesignIconView();
-                icon.setGlyphName("CLOCK");
-                icon.setSize("16");
+                FontIcon icon = new FontIcon("fas-clock");
+                icon.setIconSize(16);
                 playlistColumnDuration.setGraphic(icon);
 
                 playlistColumnTitle.setMinWidth(columnTitle.getMinWidth());
@@ -291,8 +288,8 @@ public class PlayerController {
                 tabPlaylist.setContent(viewTablePlaylist);
 
                 paneTab.getTabs().add(tabPlaylist);
-
                 paneTab.getSelectionModel().select(tabPlaylist);
+
                 startPlaylist(tabPlaylist);
             }
         }
@@ -309,7 +306,7 @@ public class PlayerController {
         columnArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
         columnDuration.setCellValueFactory(new PropertyValueFactory<>("duration"));
 
-        viewTableMedia.getItems().addAll(Main.updateMedia());
+        viewTableMedia.getItems().addAll(App.updateMedia());
 
         /* Add context menus to each record in the table for adding media files to playlists */
 
@@ -369,7 +366,7 @@ public class PlayerController {
     @FXML
     void updatePlaylistList() {
         viewListPlaylists.getItems().removeAll(viewListPlaylists.getItems());
-        viewListPlaylists.getItems().addAll(Main.getPlaylists());
+        viewListPlaylists.getItems().addAll(App.getPlaylists());
 
         /* Add context menus to each record in the table for renaming and deleting playlists */
 
@@ -395,7 +392,7 @@ public class PlayerController {
                         Optional<String> input = dialog.showAndWait();
 
                         input.ifPresent(name -> {
-                            for (Playlist playlist : Main.getPlaylists()) {
+                            for (Playlist playlist : App.getPlaylists()) {
                                 if (playlist.getName().equals(name)) {
 
                                     /* Display an error alert if a playlist with the inputted name already exists */
@@ -445,8 +442,7 @@ public class PlayerController {
     /**
      * Plays the {@code tab}'s associated playlist.
      * <p>
-     * The current media file that is playing is determined by which row is selected.
-     * The next row is automatically selected once the current media is done playing.
+     * The current media file that is playing is determined by which row is selected. The next row is automatically selected once the current media is done playing.
      *
      * @param tab {@code Tab} of associated playlist
      */
@@ -456,15 +452,17 @@ public class PlayerController {
         /* Play each media file (in order) after the previous has finished playing */
 
         view.getSelectionModel().selectedItemProperty().addListener(((observable, oldValue, newValue) -> {
-            playMedia(newValue.getPath());
+            if (newValue != null) {
+                playMedia(newValue.getPath());
 
-            mediaPlayer.setOnEndOfMedia(() -> {
-                int currentIndex = view.getSelectionModel().getSelectedIndex() + 1;
+                mediaPlayer.setOnEndOfMedia(() -> {
+                    int currentIndex = view.getSelectionModel().getSelectedIndex() + 1;
 
-                if (currentIndex < view.getItems().size()) {
-                    view.getSelectionModel().select(currentIndex);
-                }
-            });
+                    if (currentIndex < view.getItems().size()) {
+                        view.getSelectionModel().select(currentIndex);
+                    }
+                });
+            }
         }));
 
         view.getSelectionModel().select(0);
@@ -475,10 +473,8 @@ public class PlayerController {
      * <p>
      * {@link #sliderVolume} detects a change in value and applies the new value to {@link #mediaPlayer}'s volume.
      * <p>
-     * {@link #mediaPlayer} changes {@link #btnPlay}'s icon depending on whether or not the current media is playing.
-     * {@link #labelCurrentTime}'s text and {@link #sliderSeek}'s value are changed as the {@code currentTimeProperty}
-     * of the {@code MediaPlayer} changes. {@link #labelTotalDuration}'s text and {@link #sliderSeek}'s max value are
-     * set to the total duration of {@link #media}.
+     * {@link #mediaPlayer} changes {@link #btnPlay}'s icon depending on whether or not the current media is playing. {@link #labelCurrentTime}'s text and {@link #sliderSeek}'s value are changed as
+     * the {@code currentTimeProperty} of the {@code MediaPlayer} changes. {@link #labelTotalDuration}'s text and {@link #sliderSeek}'s max value are set to the total duration of {@link #media}.
      */
     private void setMediaPlayerListeners() {
         sliderVolume.valueProperty().addListener((observable, oldValue, newValue) -> mediaPlayer.setVolume(newValue.doubleValue() / 100.0)); // Player volume changes when the volume slider changes
@@ -487,9 +483,9 @@ public class PlayerController {
 
         mediaPlayer.statusProperty().addListener((observable, oldValue, newValue) -> {
             if (mediaPlayer.getStatus() == PLAYING) {
-                iconBtnPlay.setGlyphName("PAUSE");
+                iconBtnPlay.setIconLiteral("fas-pause");
             } else {
-                iconBtnPlay.setGlyphName("PLAY");
+                iconBtnPlay.setIconLiteral("fas-play");
             }
         });
 
@@ -542,9 +538,7 @@ public class PlayerController {
         });
 
         btnStepBack.setOnAction(e -> mediaPlayer.seek(javafx.util.Duration.seconds(0)));    // Seeks to the start of the media file
-
         btnStop.setOnAction(e -> mediaPlayer.stop());                                       // Stops the media file
-
         btnStepForward.setOnAction(e -> mediaPlayer.seek(media.getDuration()));             // Seeks to the end of the media file
     }
 }

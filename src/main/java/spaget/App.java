@@ -28,10 +28,10 @@ import java.util.Iterator;
  * Main class of the {@code JavaFX} application.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.3
+ * @version 4.0.0
  * @since 04.01.2021
  */
-public class Main extends Application {
+public class App extends Application {
     static final String MEDIA_PATH = Paths.get("media").toAbsolutePath().toString();
 
     @Override
@@ -43,8 +43,11 @@ public class Main extends Application {
         stage.getIcons().add(new Image(getClass().getResource("/images/spaghetti.png").toExternalForm()));
         stage.show();
 
-        stage.setMinWidth(608.5 + (stage.getWidth() - root.prefWidth(0)));
-        stage.setMinHeight(608.5 + (stage.getHeight() - root.prefHeight(0)));
+        final double DEFAULT_HEIGHT = 608.5;
+        stage.setMinHeight(DEFAULT_HEIGHT + (stage.getHeight() - root.prefHeight(0)));
+
+        final double DEFAULT_WIDTH = 608.5;
+        stage.setMinWidth(DEFAULT_WIDTH + (stage.getWidth() - root.prefWidth(0)));
 
         updateMedia();
     }
@@ -52,9 +55,8 @@ public class Main extends Application {
     /**
      * Updates the database by adding new local media and/or remove non-existent media.
      * <p>
-     * A list of database media paths and a list of local media paths are gathered.
-     * The lists are compared to see if they're the same. If they're not the same, the database is updated
-     * to reflect local changes.
+     * A list of database media paths and a list of local media paths are gathered. The lists are compared to see if they're the same. If they're not the same, the database is updated to reflect local
+     * changes.
      *
      * @return Up-to-date {@code ArrayList} of local media files.
      * @see Media
@@ -65,7 +67,7 @@ public class Main extends Application {
 
         /* Delete all media records if the local folder is empty */
 
-        if (localMedia.size() == 0) {
+        if (localMedia.size() == 0 && databaseMedia.size() != 0) {
             for (Media media : databaseMedia) {
                 DB.deleteSQL("DELETE FROM tblMedia WHERE fldPath = '" + media.getPath() + "'");
             }
@@ -73,16 +75,7 @@ public class Main extends Application {
             return localMedia;
         }
 
-        /* New media files are added to the database */
-
-        for (Media media : localMedia) {
-            if (!databaseMedia.contains(media)) {
-                DB.insertSQL("INSERT INTO tblMedia (fldPath, fldTitle, fldArtist, fldLength) VALUES ('" + media.getPath() + "', '" + media.getTitle() + "', '" + media.getArtist() + "', '" + media.getLength() + "')");
-                databaseMedia.add(media);
-            }
-        }
-
-        /* Records of deleted media files are removed */
+        /* Delete records of non-existent media files */
 
         Iterator<Media> iterator = databaseMedia.iterator(); // An Iterator is used instead of a for-loop to avoid a ConcurrentModificationException
 
@@ -93,6 +86,15 @@ public class Main extends Application {
                 DB.deleteSQL("DELETE FROM tblMedia WHERE fldPath = '" + media.getPath() + "'");
 
                 iterator.remove();
+            }
+        }
+
+        /* New media files are inserted into the database */
+
+        for (Media media : localMedia) {
+            if (!databaseMedia.contains(media)) {
+                DB.insertSQL("INSERT INTO tblMedia (fldPath, fldTitle, fldArtist, fldLength) VALUES ('" + media.getPath() + "', '" + media.getTitle() + "', '" + media.getArtist() + "', '" + media.getLength() + "')");
+                databaseMedia.add(media);
             }
         }
 
@@ -159,50 +161,54 @@ public class Main extends Application {
 
     /**
      * Retrieves all media files in the {@link #MEDIA_PATH} folder as an {@code ArrayList}.
-     *
+     * <p>
      * {@link org.jaudiotagger} is used to retrieve {@code ID3} tags of audio files.
      *
      * @return {@code ArrayList} of local media files.
      * @see Media
      */
     private static ArrayList<Media> getLocalMedia() {
-        ArrayList<Media> localMedia = new ArrayList<>(); // Stores all media files from the local folder
+        ArrayList<Media> localMedia = new ArrayList<>(); // Stores all media files from the local directory
 
         try {
-            File mediaFolder = new File(MEDIA_PATH);    // Store local folder as a File object
-            File[] mediaList = mediaFolder.listFiles(); // Array of File objects representing the files in the local folder
+            File mediaDirectory = Files.createDirectories(Paths.get(MEDIA_PATH)).toFile();    // Store local media directory as a File object
+            File[] files = mediaDirectory.listFiles(); // Array of File objects representing the files in the local folder
 
-            for (File media : mediaList) {
-                String path = media.getAbsolutePath();                      // Absolute path of current media file
-                String fileType = Files.probeContentType(media.toPath());   // Check whether the file is an audio, video, or other type of file
+            if (files != null) {
+                for (File file : files) {
+                    String path = file.getAbsolutePath();                      // Absolute path of current media file
+                    String fileType = Files.probeContentType(file.toPath());   // Check whether the file is an audio, video, or other type of file
 
-                if (fileType.contains("audio")) {
+                    if (fileType != null) {
+                        if (fileType.contains("audio")) {
 
-                    /* Get ID3 tags and track length using the library JAudioTagger */
+                            /* Get ID3 tags and track length using the library JAudioTagger */
 
-                    AudioFile file = AudioFileIO.read(new File(path));
-                    Tag tag = file.getTag();
-                    AudioHeader header = file.getAudioHeader();
+                            AudioFile audioFile = AudioFileIO.read(new File(path));
+                            Tag tag = audioFile.getTag();
+                            AudioHeader header = audioFile.getAudioHeader();
 
-                    String title = tag.getFirst(FieldKey.TITLE);
-                    String artist = tag.getFirst(FieldKey.ARTIST);
-                    int length = header.getTrackLength();
+                            String title = tag.getFirst(FieldKey.TITLE);
+                            String artist = tag.getFirst(FieldKey.ARTIST);
+                            int length = header.getTrackLength();
 
-                    localMedia.add(new Media(path, title, artist, length));
-                } else if (fileType.contains("video")) {
+                            localMedia.add(new Media(path, title, artist, length));
+                        } else if (fileType.contains("video")) {
 
-                    /* Get video length by using a temporary JavaFX MediaPlayer */
+                            /* Get video length by using a temporary JavaFX MediaPlayer */
 
-                    javafx.scene.media.Media video = new javafx.scene.media.Media(Paths.get(path).toUri().toString());
-                    MediaPlayer temp = new MediaPlayer(video);
+                            javafx.scene.media.Media video = new javafx.scene.media.Media(Paths.get(path).toUri().toString());
+                            MediaPlayer temp = new MediaPlayer(video);
 
-                    temp.setOnReady(() -> {
-                        DB.updateSQL("UPDATE tblMedia SET fldLength = " + (int) Math.round(temp.getTotalDuration().toSeconds()) + " WHERE fldPath = '" + path + "'");
+                            temp.setOnReady(() -> {
+                                DB.updateSQL("UPDATE tblMedia SET fldLength = " + (int) Math.round(temp.getTotalDuration().toSeconds()) + " WHERE fldPath = '" + path + "'");
 
-                        temp.dispose();
-                    });
+                                temp.dispose();
+                            });
 
-                    localMedia.add(new Media(path, media.getName(), "", (int) Math.round(video.getDuration().toSeconds())));
+                            localMedia.add(new Media(path, file.getName(), "", (int) Math.round(video.getDuration().toSeconds())));
+                        }
+                    }
                 }
             }
         } catch (IOException | CannotReadException | ReadOnlyFileException | TagException | InvalidAudioFrameException e) {
@@ -212,20 +218,7 @@ public class Main extends Application {
         return localMedia;
     }
 
-    /**
-     * Disables {@link org.jaudiotagger} logging.
-     */
-    private static void disableLogger() {
-        java.util.logging.LogManager manager = java.util.logging.LogManager.getLogManager();
-
-        try {
-            manager.readConfiguration(Main.class.getResourceAsStream("/properties/logger.properties"));
-        } catch (IOException ignored) {}
-    }
-
     public static void main(String[] args) {
-        disableLogger();
-
         launch(args);
     }
 }

@@ -4,18 +4,21 @@ package spaget;
  * Models a media file.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 3.1
+ * @version 4.0.0
  * @since 04.01.2021
  */
 public class Media {
-    private String path, title, artist, duration;
-    private int length;
+    private final String path;
+    private final String title;
+    private final String artist;
+    private final String duration;
+    private final int length;
 
     /**
      * Sole constructor.
      *
-     * @param path absolute path to the media file
-     * @param title title of media file
+     * @param path   absolute path to the media file
+     * @param title  title of media file
      * @param artist artist of media file
      * @param length length of media file
      */

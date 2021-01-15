@@ -6,12 +6,12 @@ import java.util.ArrayList;
  * Models a playlist of media files.
  *
  * @author Denis Cokanovic, Morten Kristensen, Niclas Liedke, Rasmus Hansen
- * @version 1.1
+ * @version 4.0.0
  * @since 08.01.2021
  */
 public class Playlist {
     private String name;
-    private ArrayList<Media> mediaList = new ArrayList<>();
+    private final ArrayList<Media> mediaList = new ArrayList<>();
 
     public Playlist(String name) {
         this.name = name;

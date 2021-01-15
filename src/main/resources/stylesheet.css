@@ -24,7 +24,7 @@
 
 .slider .thumb {
     -fx-background-color: transparent;
-    -fx-background-image: url("/images/meatball.png");
+    -fx-background-image: url("images/meatball.png");
     -fx-background-size: cover;
 }
 
