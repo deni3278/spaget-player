@@ -69,7 +69,7 @@ public class App extends Application {
 
         if (localMedia.size() == 0 && databaseMedia.size() != 0) {
             for (Media media : databaseMedia) {
-                DB.deleteSQL("DELETE FROM tblMedia WHERE fldPath = '" + media.getPath() + "'");
+                DB.deleteSQL("DELETE FROM tblMedia WHERE fldPath = '" + media.getPath(true) + "'");
             }
 
             return localMedia;
@@ -83,7 +83,7 @@ public class App extends Application {
             Media media = iterator.next();
 
             if (!localMedia.contains(media)) {
-                DB.deleteSQL("DELETE FROM tblMedia WHERE fldPath = '" + media.getPath() + "'");
+                DB.deleteSQL("DELETE FROM tblMedia WHERE fldPath = '" + media.getPath(true) + "'");
 
                 iterator.remove();
             }
@@ -93,7 +93,7 @@ public class App extends Application {
 
         for (Media media : localMedia) {
             if (!databaseMedia.contains(media)) {
-                DB.insertSQL("INSERT INTO tblMedia (fldPath, fldTitle, fldArtist, fldLength) VALUES ('" + media.getPath() + "', '" + media.getTitle() + "', '" + media.getArtist() + "', '" + media.getLength() + "')");
+                DB.insertSQL("INSERT INTO tblMedia (fldPath, fldTitle, fldArtist, fldLength) VALUES ('" + media.getPath(true) + "', '" + media.getTitle().replaceAll("'","''") + "', '" + media.getArtist().replaceAll("'","''") + "', '" + media.getLength() + "')");
                 databaseMedia.add(media);
             }
         }
