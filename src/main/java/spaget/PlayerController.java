@@ -343,7 +343,7 @@ public class PlayerController {
 
                             mediaList.add(row.getItem());
 
-                            DB.insertSQL("INSERT INTO tblPlaylistMedia (fldPlaylistName, fldMediaPath) VALUES ('" + playlist.getName() + "', '" + row.getItem().getPath() + "')");
+                            DB.insertSQL("INSERT INTO tblPlaylistMedia (fldPlaylistName, fldMediaPath) VALUES ('" + playlist.getName() + "', '" + row.getItem().getPath(true) + "')");
                         });
 
                         addToPlaylist.getItems().add(item);

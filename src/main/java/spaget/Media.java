@@ -35,6 +35,14 @@ public class Media {
         return path;
     }
 
+    public String getPath(boolean cancelApostrophe) {
+        if (cancelApostrophe){
+            return path.replaceAll("'","''");
+        }
+        return path;
+    }
+
+
     public String getTitle() {
         return title;
     }
